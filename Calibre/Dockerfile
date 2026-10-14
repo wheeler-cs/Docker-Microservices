@@ -17,7 +17,9 @@ RUN wget https://download.calibre-ebook.com/linux-installer.sh && chmod 700 linu
 RUN ./linux-installer.sh
 
 # Configure update on launch
-ENTRYPOINT ["/bin/bash"]
-#CMD ["wget", "https://download.calibre-ebook.com/linux-installer.sh", "&&", \
-#     "chmod",  "700", "linux-installer.sh", "&&", \
-#     "./linux-installer.sh"]
+ENTRYPOINT ["/bin/bash", "-c"]
+# BUG: Not all of these commands are running
+CMD ["wget https://download.calibre-ebook.com/linux-installer.sh -O linux-installer.sh", \
+     "chmod 700 linux-installer.sh", \
+     "./linux-installer.sh", \
+     "calibre-server"]
