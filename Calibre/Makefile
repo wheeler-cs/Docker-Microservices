@@ -7,4 +7,4 @@ clean:
 	docker image rm calibre-dev
 
 run:
-	docker run --name calibre -it calibre-dev
+	docker run -p 127.0.0.1:28080:8080 --name calibre -it calibre-dev 
