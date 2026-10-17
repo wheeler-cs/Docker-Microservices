@@ -3,7 +3,7 @@ FROM debian:stable
 ARG DEDRM_REPO=https://github.com/Satsuoni/DeDRM_tools.git
 
 # TODO List
-#   - Setup de-DRM tooling.
+#   - Setup DeDRM tooling.
 #   - Update Calibre on container start.
 #   - Create a bind mount to allow host-container ebook sharing.
 
@@ -39,10 +39,8 @@ RUN wget https://download.calibre-ebook.com/linux-installer.sh && \
 
 # Create calibre user and needed directories
 RUN useradd -ms /bin/bash calibre
-RUN mkdir /srv/calibre && \
-    chown calibre:calibre /srv/calibre
-RUN mkdir /var/log/calibre && \
-    chown calibre:calibre /var/log/calibre
+RUN mkdir /srv/calibre /var/log/calibre && \
+    chown calibre:calibre /srv/calibre /var/log/calibre
 
 
 # === Calibre User Tasks =======================================================
@@ -59,6 +57,7 @@ RUN calibredb list --library-path=/home/calibre/library && \
 
 # Download and install DeDRM packages
 RUN git clone $DEDRM_REPO DeDRM
+# TODO: Change this method of installation to one that actually works
 RUN calibre-customize -b /home/calibre/DeDRM/DeDRM_plugin && \
     calibre-customize -b /home/calibre/DeDRM/Obok_plugin
 
@@ -74,4 +73,4 @@ CMD ["source .bashrc && \
                      --userdb /srv/calibre/users.sqlite \
                      --enable-auth \
                      /home/calibre/library \
-                     2> /var/log/calibre/error.log"]
+                     2>&1 | tee /var/log/calibre/error.log"]
