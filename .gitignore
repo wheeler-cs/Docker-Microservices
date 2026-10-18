@@ -2,4 +2,4 @@
 **/test/**
 
 # Calibre exclusions
-*adobekey*
+*.der

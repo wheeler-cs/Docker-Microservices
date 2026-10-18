@@ -3,7 +3,6 @@ FROM debian:stable
 ARG DEDRM_REPO=https://github.com/Satsuoni/DeDRM_tools.git
 
 # TODO List
-#   - Setup DeDRM tooling.
 #   - Update Calibre on container start.
 #   - Create a bind mount to allow host-container ebook sharing.
 
@@ -45,7 +44,7 @@ RUN wget https://download.calibre-ebook.com/linux-installer.sh && \
 # === Calibre User Tasks =======================================================
 USER calibre
 WORKDIR /home/calibre
-COPY .bashrc keytojson.py /home/calibre/
+COPY .bashrc keytojson.py test/* /home/calibre/
 
 # Create Calibre directories, library, and databases
 RUN mkdir -p /home/calibre/library && \
@@ -62,8 +61,11 @@ RUN cd /tmp/DeDRM && \
     mv DeDRM_tools.zip /tmp && \
     cd /tmp && \
     unzip DeDRM_tools.zip
-RUN calibre-customize -a /tmp/DeDRM_plugin.zip && \
-    calibre-customize -a /tmp/Obok_plugin.zip
+RUN export CALIBRE_CONFIG_DIRECTORY="/etc/calibre" && \
+    calibre-customize -a /tmp/DeDRM_plugin.zip && \
+    calibre-customize -a /tmp/Obok_plugin.zip && \
+    python3 keytojson.py && \
+    rm -rf /tmp/*
 
 
 # === Container Configuration ==================================================
