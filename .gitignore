@@ -1,0 +1,5 @@
+# General purpose exclusions
+**/test/**
+
+# Calibre exclusions
+*adobekey*
