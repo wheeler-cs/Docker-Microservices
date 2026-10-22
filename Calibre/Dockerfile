@@ -2,6 +2,9 @@ FROM debian:stable
 
 ARG DEDRM_REPO=https://github.com/Satsuoni/DeDRM_tools.git
 
+# Mirror of libgourou on an actually-accessible site
+ARG LIBGOUROU_REPO=https://github.com/wheeler-cs/libgourou-mirror
+
 # TODO List
 #   - Use libgourou instead of the DeDRM plugin.
 #   - Update Calibre on container start.
