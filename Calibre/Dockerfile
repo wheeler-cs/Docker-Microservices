@@ -3,8 +3,23 @@ FROM debian:stable
 ARG DEDRM_REPO=https://github.com/Satsuoni/DeDRM_tools.git
 
 # TODO List
+#   - Use libgourou instead of the DeDRM plugin.
 #   - Update Calibre on container start.
 #   - Create a bind mount to allow host-container ebook sharing.
+
+
+# === Container Configuration ==================================================
+EXPOSE 8080
+
+# Run Calibre server on startup
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["source .bashrc && \
+      echo Calibre server running && \
+      calibre-server --log /var/log/calibre/calibre.log \
+                     --userdb /srv/calibre/users.sqlite \
+                     --enable-auth \
+                     /home/calibre/library \
+                     2>&1 | tee /var/log/calibre/error.log"]
 
 
 # === System Level Tasks =======================================================
@@ -27,7 +42,6 @@ RUN apt install git \
 
 # === Root User Tasks ==========================================================
 WORKDIR /tmp
-RUN export CALIBRE_CONFIG_DIRECTORY=/etc/calibre
 
 # Create calibre user and needed directories
 RUN useradd -ms /bin/bash calibre
@@ -35,7 +49,8 @@ RUN mkdir /srv/calibre /var/log/calibre /etc/calibre && \
     chown calibre:calibre /srv/calibre /var/log/calibre /etc/calibre
 
 # Install Calibre and clean up
-RUN wget https://download.calibre-ebook.com/linux-installer.sh && \
+RUN export CALIBRE_CONFIG_DIRECTORY="/etc/calibre" && \
+    wget https://download.calibre-ebook.com/linux-installer.sh && \
     chmod 700 linux-installer.sh && \
     ./linux-installer.sh && \
     rm -rf /tmp/*
@@ -45,6 +60,7 @@ RUN wget https://download.calibre-ebook.com/linux-installer.sh && \
 USER calibre
 WORKDIR /home/calibre
 COPY .bashrc keytojson.py test/* /home/calibre/
+COPY --chown=calibre:calibre adobekey.der /tmp/
 
 # Create Calibre directories, library, and databases
 RUN mkdir -p /home/calibre/library && \
@@ -52,11 +68,10 @@ RUN mkdir -p /home/calibre/library && \
 RUN calibredb list --library-path=/home/calibre/library && \
     calibre-server --userdb /srv/calibre/users.sqlite \
                    --manage-users -- add calibre calibre calibre
-COPY --chown=calibre:calibre adobekey.der /tmp/
 
 # Download and install DeDRM packages
-RUN git clone $DEDRM_REPO /tmp/DeDRM
-RUN cd /tmp/DeDRM && \
+RUN git clone $DEDRM_REPO /tmp/DeDRM && \
+    cd /tmp/DeDRM && \
     python3 make_release.py && \
     mv DeDRM_tools.zip /tmp && \
     cd /tmp && \
@@ -66,17 +81,3 @@ RUN export CALIBRE_CONFIG_DIRECTORY="/etc/calibre" && \
     calibre-customize -a /tmp/Obok_plugin.zip && \
     python3 keytojson.py && \
     rm -rf /tmp/*
-
-
-# === Container Configuration ==================================================
-EXPOSE 8080
-
-# Run Calibre server on startup
-ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["source .bashrc && \
-      echo Calibre server running && \
-      calibre-server --log /var/log/calibre/calibre.log \
-                     --userdb /srv/calibre/users.sqlite \
-                     --enable-auth \
-                     /home/calibre/library \
-                     2>&1 | tee /var/log/calibre/error.log"]
