@@ -1,6 +1,6 @@
 
 build:
-	docker build -t calibre-dev .
+	docker build -t calibre-dev . --progress=plain
 
 clean:
 	docker container rm calibre
